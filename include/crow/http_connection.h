@@ -426,23 +426,33 @@ namespace crow
                     std::string buf;
                     std::vector<asio::const_buffer> buffers;
 
-                    while (res.body.length() > 16384)
-                    {
-                        //buf.reserve(16385);
-                        buf = res.body.substr(0, 16384);
-                        res.body = res.body.substr(16384);
+                    //////// fix performance issue
+                    for (size_t sentSizeIter = 0; sentSizeIter < res.body.length(); sentSizeIter += 16384) {
+                        buf = res.body.substr(sentSizeIter, std::min(sentSizeIter + 16384, res.body.length()));
                         buffers.clear();
-                        buffers.push_back(boost::asio::buffer(buf));
+                        buffers.push_back(asio::buffer(buf));
                         do_write_sync(buffers);
-                    }
-                    // Collect whatever is left (less than 16KB) and send it down the socket
-                    // buf.reserve(is.length());
-                    buf = res.body;
-                    res.body.clear();
 
-                    buffers.clear();
-                    buffers.push_back(boost::asio::buffer(buf));
-                    do_write_sync(buffers);
+                    }
+                    buf.clear();
+                    res.body.clear();
+//                    while (res.body.length() > 16384)
+//                    {
+//                        //buf.reserve(16385);
+//                        buf = res.body.substr(0, 16384);
+//                        res.body = res.body.substr(16384);
+//                        buffers.clear();
+//                        buffers.push_back(boost::asio::buffer(buf));
+//                        do_write_sync(buffers);
+//                    }
+//                    // Collect whatever is left (less than 16KB) and send it down the socket
+//                    // buf.reserve(is.length());
+//                    buf = res.body;
+//                    res.body.clear();
+//
+//                    buffers.clear();
+//                    buffers.push_back(boost::asio::buffer(buf));
+//                    do_write_sync(buffers);
                 }
                 is_writing = false;
                 if (close_connection_)
