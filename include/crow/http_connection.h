@@ -428,7 +428,8 @@ namespace crow
 
                     //////// fix performance issue
                     for (size_t sentSizeIter = 0; sentSizeIter < res.body.length(); sentSizeIter += 16384) {
-                        buf = res.body.substr(sentSizeIter, std::min(sentSizeIter + 16384, res.body.length()));
+                        buf = res.body.substr(sentSizeIter,
+                                              std::min(sentSizeIter + 16384, res.body.length()) - sentSizeIter);
                         buffers.clear();
                         buffers.push_back(asio::buffer(buf));
                         do_write_sync(buffers);
